@@ -4,9 +4,9 @@
 
 Build a generic engineering portfolio with an illustrated night stadium, animated players, and a readable experience panel. The actual title remains Senior Software Engineer. Demonstrate staff-level scope through architectural judgment, cross-team influence, delivery, and measurable results.
 
-![Approved stadium direction](assets/stadium-concept.png)
+![Stadium concept reference](assets/stadium-concept.png)
 
-The reference is an AI-generated composition. It includes sample career copy and metrics that need validation before publication. Its extra unlabeled player and painted labels are illustrative. The implementation uses exactly six interactive players.
+Visual mockups are exploratory references, and all copy and metrics are placeholders until verified. Additional layout and animation suggestions describe intended behavior rather than completed assets or a working demo. The reference is an AI-generated composition. It includes sample career copy and metrics that need validation before publication. Its extra unlabeled player and painted labels are illustrative. The implementation uses exactly six interactive players.
 
 ## Background-first approach
 
@@ -35,7 +35,10 @@ Suggested folders are src/components, src/scene, src/content, src/styles, public
 | Component | Responsibility and interaction | CSS and rendering |
 | --- | --- | --- |
 | PortfolioShell | Own selected section and shared navigation | Dark page, desktop grid, minimum 100svh, overflow-x clip |
-| SiteHeader | Name, true title, résumé, contact, skip link | Readable HTML, flex wrap, high z-index, 64–80px desktop height |
+| SiteHeader | Name, true title, résumé, and Plain view link | Overlay at the top of the pitch, outside world transforms, flex wrap, high z-index |
+| PitchNavigation | One primary navigation system for all six sections | Semantic nav in the pitch top bar, aria-current, 44px targets |
+| ProgressStrip | Six noninteractive steps matching the six players | Ordered list beneath scene, active step highlighted, no duplicate menu |
+| PlainView | Full résumé and project content with ordinary links | Single readable column, native scrolling, stable section anchors |
 | StadiumViewport | Reserve image dimensions and clip the moving world | position relative, isolation isolate, aspect-ratio 3/2, overflow hidden |
 | StadiumWorld | Shared coordinate space for background and all scene objects | position absolute, inset 0, transform-origin center; camera transform applied here only |
 | StadiumBackground | Responsive picture element | width and height 100%, display block, exact shared aspect ratio |
@@ -46,7 +49,8 @@ Suggested folders are src/components, src/scene, src/content, src/styles, public
 | SelectionRing | Identify current possession | Ellipse anchored at foot, amber border and restrained shadow |
 | BallLayer | Ball, shadow, short trail | Absolute overlay with pointer-events none; transform updates each frame |
 | PassTrail | Show a short fading segment of flight | SVG using the same viewBox as the world, stroke with rounded caps |
-| ContentPanel | Render selected section immediately and preserve readability | Solid navy fallback, subtle border, 24–36px padding, 60–70ch text measure |
+| ContentPanel | Section label, headline, one verified metric and one CTA | Fixed 360px desktop width, solid navy, 24px padding, 16px entrance translation |
+| MetricValue | Count once per section per session | Tabular numerals, stable reserved width, final accessible value |
 | CareerSection | Role timeline, scope, achievements, case-study links | Semantic headings and ordered list; dates remain text |
 | EducationSection | Degree, institution, dates, relevant work | Compact readable rows, no fabricated fields |
 | SelectedWorkSection | Three substantial case-study previews | Problem, ownership, outcome, descriptive links |
@@ -54,7 +58,6 @@ Suggested folders are src/components, src/scene, src/content, src/styles, public
 | WritingSection | Articles, talks, system design explainers | Title, topic, date, and destination |
 | ContactSection | Verified email, LinkedIn, GitHub, résumé | Real anchors and buttons with accessible names |
 | CaseStudyPage | Full problem, constraints, options, decision, rollout, results | Dedicated URL, reading layout, back link restores section |
-| SectionNavigation | Direct access, previous/next pass | Semantic nav, aria-current, wraps or horizontally scrolls on mobile |
 | SoundToggle | Persist explicit audio preference | Visible text label, aria-pressed, minimum 44px target |
 
 ## CSS foundation
@@ -70,7 +73,7 @@ Suggested folders are src/components, src/scene, src/content, src/styles, public
 }
 .portfolio {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(360px, 1fr);
+  grid-template-columns: minmax(0, 1fr) 360px;
   gap: clamp(16px, 2vw, 32px);
   color: var(--text);
   background: var(--page);
@@ -113,6 +116,22 @@ button:focus-visible, a:focus-visible {
 
 These are starting values to refine against the artwork. Keep content panels outside camera transforms. Use separate wrappers for player positioning and sprite motion so animations cannot overwrite the positioning transform. Apply will-change only while objects animate. Use 16px or larger body text and restrained heading sizes.
 
+## Interaction polish and CSS details
+
+The six players are optional shortcuts into the same navigation action and section state as the pitch top bar. Plain view is always visible and preserves the current section when switching modes. Remember the mode preference where storage is available. Full case studies carry staff-level evidence beyond the compact panel.
+
+Dim only the decorative stadium layer while the panel is open, starting with brightness(.75) and saturate(.8). Keep players, navigation, labels, and the ball readable. Transition these values over 200ms and check performance on mobile.
+
+Hover and keyboard focus lift an inner sprite wrapper 4px, brighten the label, and reveal a soft ground ring. Show a short preview such as “Career · GoDaddy”. Keep the foot anchor and hit target fixed. Touch does not depend on hover.
+
+Panel entrance uses opacity and translateX(16px), with headline, metric, and CTA delays of 0, 60, and 120ms. Trigger this on scene entrance. Later section changes use the 70% pass crossfade and the same short stagger. Hidden outgoing content is inert and excluded from the accessibility tree. Retain a stable panel height to avoid layout jumps.
+
+Count up only suitable verified numeric metrics once per section per session. Store visited metric IDs. Use a short 400ms animation with tabular numerals, and expose the final value to assistive technology without live announcements per frame. Render complex ranges and nonnumeric highlights directly.
+
+Idle life uses CSS loops for slow crowd shimmer, a 1–2px active-player bob, and very low-amplitude floodlight variation. Keep light changes slow and non-flashing. Add a document visibility class to pause animation-play-state when the tab is hidden and pause offscreen scenes. Reduced motion disables these loops.
+
+A first-visit kickoff lasts at most two seconds. The ball rolls to centre, then the selected player gains possession and the initial panel opens. Keep a visible Skip intro button and navigation available throughout. Any navigation cancels the intro and settles at the requested player. Record introSeen only on completion or skip. Skip automatically for reduced motion, Plain view, or a direct section link. If storage fails, default to skipping. Provide a development-only duration control and reduced-motion simulation for review.
+
 ## Coordinate alignment and layering
 
 Choose one canonical world size, such as 2400 × 1600. Store foot positions as normalized coordinates from 0 to 1, calibrated against the final clean artwork. HTML, SVG viewBox, ball path, shadows, and foreground share that coordinate system.
@@ -125,7 +144,7 @@ Layer order starts with background, light overlays, ground shadows, players and 
 
 Use idle → windup → flight → receive → idle. Initial possession is Career. Education remains directly accessible. Suggested sequence is Education, Career, Selected Work, Side Projects, Writing, Contact.
 
-A short pass takes roughly 650ms, and a long diagonal roughly 1100ms including windup and first touch. Tune timing by watching the actual prototype. Use an ease-out on reception, with one small settle movement. Each player turns toward the target and uses the appropriate sprite frames.
+Ball travel takes 700–900ms, default 800ms, with ease-in-out progress. Keep windup and receive poses brief and overlapping the transition. Crossfade panel content at 70% of flight and pulse the receiving ring on arrival. Apply eased progress consistently to both ground position and elevation. Use one small settle movement. Each player turns toward the target and uses the appropriate sprite frames.
 
 For normalized time t, define ground position with a quadratic Bézier curve between the source foot and target foot. A slightly offset midpoint creates lateral curl. Let height h(t) = 4 × H × t × (1 − t). Render the ball at (groundX, groundY − h), and the shadow at (groundX, groundY). Increase shadow blur and lower its opacity with height. Apply subtle scale increase and ball rotation to suggest depth. Keep the bright trail short and fade it within about 150ms.
 
@@ -133,17 +152,17 @@ Camera motion should be limited to approximately 12px pan and 1.02 scale during 
 
 ## State, scroll, and repeated input
 
-Keep selectedSection, possessionSection, targetSection, phase, and latestPendingTarget explicit. A selection updates readable content immediately, while the ball completes the visual transition. The ring changes possession on reception. Announce the new section once through a polite live region.
+Keep selectedSection, possessionSection, targetSection, phase, and latestPendingTarget explicit. A selection records the target immediately. Keep displayedSection separate and commit it at 70% of the pass, then crossfade the panel. The ring changes possession on reception. Announce the new section once through a polite live region.
 
 Clicking the current target is a no-op. During flight, remember only the latest requested destination, finish reception, then pass onward. This avoids teleportation and unbounded queues. A new click supersedes passive scroll requests. Cancel animation frames and listeners on unmount. On tab visibility loss, settle at the requested section and clear pending animation.
 
-Use normal document scrolling with content sections as scroll targets and the stadium sticky on desktop. IntersectionObserver selects the section nearest the reading position with hysteresis to avoid toggling at boundaries. Clicking a player scrolls to its section and temporarily suppresses observer-driven changes until the target settles or the user interrupts. This keeps long career content readable without consuming every wheel event as a pass command.
+In scene mode, one deliberate wheel gesture advances one section in the six-step order. Normalize deltaMode, accumulate movement to a tunable threshold (start at 60px), and lock until the pass finishes AND wheel input has been quiet for 180ms. Discard momentum during the lock. Reaching the first or last step releases normal scrolling. Scope a non-passive wheel listener to the pitch only, ignore Ctrl-wheel zoom, and never intercept scrolling over the reading panel or other scrollable controls. Touch users use the primary navigation or optional player shortcuts. Plain view and case studies use native document scrolling. The progress strip displays state without adding another set of navigation controls.
 
 Support direct hashes such as #career, browser back/forward, and refresh. Initialize the ball at a deep-linked section. Keyboard activation uses the same navigation action. Arrow shortcuts may operate only inside focused scene navigation, never globally.
 
 ## Content and professional credibility
 
-Career shows actual roles, dates, scope, and attributable achievements. Education shows verified institution and degree information. Selected Work spans backend, frontend, platform, and product delivery. Each case study explains context, constraints, personal contribution, alternatives, technical decisions, collaboration, rollout, results, and lessons.
+The compact scene panel links to full content through its single CTA. Full content must be reachable from Plain view and direct URLs. Use a meaningful factual highlight if a section has no suitable metric, especially Education and Contact. Career shows actual roles, dates, scope, and attributable achievements. Education shows verified institution and degree information. Selected Work spans backend, frontend, platform, and product delivery. Each case study explains context, constraints, personal contribution, alternatives, technical decisions, collaboration, rollout, results, and lessons.
 
 Use the sample modernization metrics only after confirming the baseline, services, and measurement period. Gather education details, dates, public contact links, and résumé before launch. Public copy should use approved project descriptions and exclude internal credentials, private endpoints, and sensitive company details.
 
@@ -151,7 +170,7 @@ Use the sample modernization metrics only after confirming the baseline, service
 
 At narrow widths, show the pitch above content and provide persistent compact section navigation. Avoid a large sticky stadium that consumes the entire phone viewport. Player labels may shorten to Work and Projects while accessible names remain complete. Check the smallest target spacing at 360px.
 
-With prefers-reduced-motion, change possession instantly and remove trails, camera movement, and idle loops. Keyboard users can navigate every player and ordinary content link. Keep focus on the selected navigation button during section changes. Dedicated case-study routes set focus to their heading on navigation. Maintain contrast and avoid flashing lighting.
+With prefers-reduced-motion, settle possession immediately and use a plain 120ms content crossfade. Remove movement, count-up, stagger, trails, ring pulse, camera motion, and idle loops. The final metric is immediately available. Keyboard users can navigate every player and ordinary content link. Keep focus on the selected navigation button during section changes. Dedicated case-study routes set focus to their heading on navigation. Maintain contrast and avoid flashing lighting.
 
 If artwork fails, retain text navigation and all content. If JavaScript fails, prerendered content and links remain useful. Pause decorative loops when offscreen. Audio defaults off and begins only after a user gesture.
 
@@ -159,7 +178,7 @@ If artwork fails, retain text navigation and all content. If JavaScript fails, p
 
 Aim for a desktop stadium transfer below 700KB and a mobile variant below 300KB, subject to visual checks. Preload only the initial stadium, provide intrinsic dimensions, lazy-load secondary media, and subset fonts. Target LCP under 2.5 seconds and CLS below 0.1 on a representative mobile test. Measure animation frame time on a mid-range phone.
 
-Verify click and scroll navigation, all directions of passing, rapid destination changes, resize during flight, deep links, history, keyboard operation, reduced motion, and image failure. Test scroll interruption so reading cannot trigger repeated unwanted passes. Inspect at 360, 390, 768, 1280, and 1440px. Check every label and foot anchor against the final artwork.
+Verify click and scroll navigation, all directions of passing, rapid destination changes, resize during flight, deep links, history, keyboard operation, reduced motion, and image failure. Test wheel momentum so each gesture advances exactly once, and verify panel scrolling and Ctrl-wheel zoom are untouched. Verify Plain view, all six progress steps, one-time count-up, intro skip and repeat visits, 70% panel commit, hidden-tab pause, and rapid clicks during kickoff. Inspect at 360, 390, 768, 1280, and 1440px. Check every label and foot anchor against the final artwork.
 
 ## Implementation order
 
