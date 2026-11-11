@@ -156,7 +156,7 @@ Keep selectedSection, possessionSection, targetSection, phase, and latestPending
 
 Clicking the current target is a no-op. During flight, remember only the latest requested destination, finish reception, then pass onward. This avoids teleportation and unbounded queues. A new click supersedes passive scroll requests. Cancel animation frames and listeners on unmount. On tab visibility loss, settle at the requested section and clear pending animation.
 
-In scene mode, one deliberate wheel gesture advances one section in the six-step order. Normalize deltaMode, accumulate movement to a tunable threshold (start at 60px), and lock until the pass finishes AND wheel input has been quiet for 180ms. Discard momentum during the lock. Reaching the first or last step releases normal scrolling. Scope a non-passive wheel listener to the pitch only, ignore Ctrl-wheel zoom, and never intercept scrolling over the reading panel or other scrollable controls. Touch users use the primary navigation or optional player shortcuts. Plain view and case studies use native document scrolling. The progress strip displays state without adding another set of navigation controls.
+Scene mode is a single fixed viewport: the header, pitch, navigation dock, and reading panel all fit the first fold at every screen size, and the document never scrolls. Wheel and touch scrolling do not trigger passes. Navigation is by clicking a player or using the dock. The panel shows a compact brief, an Expand control that opens the full details dialog, and a link-out at the bottom. Plain view and case studies use native document scrolling.
 
 Support direct hashes such as #career, browser back/forward, and refresh. Initialize the ball at a deep-linked section. Keyboard activation uses the same navigation action. Arrow shortcuts may operate only inside focused scene navigation, never globally.
 
@@ -178,14 +178,14 @@ If artwork fails, retain text navigation and all content. If JavaScript fails, p
 
 Aim for a desktop stadium transfer below 700KB and a mobile variant below 300KB, subject to visual checks. Preload only the initial stadium, provide intrinsic dimensions, lazy-load secondary media, and subset fonts. Target LCP under 2.5 seconds and CLS below 0.1 on a representative mobile test. Measure animation frame time on a mid-range phone.
 
-Verify click and scroll navigation, all directions of passing, rapid destination changes, resize during flight, deep links, history, keyboard operation, reduced motion, and image failure. Test wheel momentum so each gesture advances exactly once, and verify panel scrolling and Ctrl-wheel zoom are untouched. Verify Plain view, all six progress steps, one-time count-up, intro skip and repeat visits, 70% panel commit, hidden-tab pause, and rapid clicks during kickoff. Inspect at 360, 390, 768, 1280, and 1440px. Check every label and foot anchor against the final artwork.
+Verify click navigation, all directions of passing, rapid destination changes, resize during flight, deep links, history, keyboard operation, reduced motion, and WebGL failure. Verify that wheel input never changes section and that no viewport size produces document or panel overflow. Verify Plain view, all six progress steps, one-time count-up, intro skip and repeat visits, 70% panel commit, hidden-tab pause, and rapid clicks during kickoff. Inspect at 360, 390, 768, 1280, and 1440px. Check every label and foot anchor against the final artwork.
 
 ## Implementation order
 
 1. Prepare clean stadium, player sprites, and verified content inputs.
 2. Build responsive semantic content, header, section links, and static scene alignment.
 3. Prototype one diagonal pass with shadow, sprite kick, first touch, and restrained camera motion.
-4. Connect all six destinations through one state machine and scroll synchronization.
+4. Connect all six destinations through one state machine.
 5. Add complete case studies, route restoration, mobile layout, and accessibility behavior.
 6. Optimize assets and run the interaction and performance checks above.
 

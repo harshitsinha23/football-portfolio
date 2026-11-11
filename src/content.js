@@ -4,15 +4,26 @@ export const sections = [
     label: "Education",
     preview: "JIIT · Computer Science",
     number: "01",
-    x: 20,
-    y: 51,
+    pos: [-24, -15],
     eyebrow: "THE FOUNDATION",
     title: "Curiosity.\nThen craft.",
-    metric: "8.6",
-    unit: "/ 10 CGPA",
     description:
       "B.Tech in Computer Science, Jaypee Institute of Information Technology. A foundation in algorithms, systems, and solving problems under pressure.",
-    cta: "Explore my foundations",
+    brief: {
+      org: "Jaypee Institute of Information Technology",
+      role: "B.Tech · Computer Science · 2017–2021 · Noida",
+      heading: "Highlights",
+      bullets: [
+        "HackWithInfy second runner-up · top 100 of 170,000",
+        "Rank 2 of 900 in AlgoFuzz 19.1",
+        "1,500+ programming problems solved",
+      ],
+      stats: [
+        ["8.6", "CGPA out of 10"],
+        ["1,500+", "Problems solved"],
+      ],
+    },
+    link: { label: "Open full education page", href: "?view=plain#education" },
     details: [
       {
         title: "Jaypee Institute of Information Technology",
@@ -31,15 +42,32 @@ export const sections = [
     label: "Career",
     preview: "SDE-3 · GoDaddy",
     number: "02",
-    x: 37,
-    y: 66,
+    pos: [-3, -2],
     eyebrow: "THE JOURNEY",
     title: "Build with depth.\nLead with ownership.",
-    metric: "5+",
-    unit: "years building production systems",
     description:
       "Senior Software Engineer at GoDaddy. Backend systems, platform engineering, and technical leadership — from architecture to production.",
-    cta: "See my experience",
+    brief: {
+      org: "GoDaddy",
+      role: "SDE-3 · Commerce & payments · Gurugram",
+      heading: "Scope & ownership",
+      summary:
+        "Technical direction, API contracts, cross-team integration, rollout, and operations across commerce and payment infrastructure.",
+      bullets: [
+        "Architected a product-agnostic, four-API payment platform",
+        "Sole engineer and tech lead for Wave-1 Stripe expansion",
+        "Lead and mentor 3+ engineers on GoPay",
+      ],
+      stats: [
+        ["5+", "Years in production"],
+        ["3+", "Engineers mentored"],
+      ],
+      path: ["PayU", "Scaler", "GoDaddy"],
+    },
+    link: {
+      label: "View career on LinkedIn",
+      href: "https://www.linkedin.com/in/harshit-kumar-1ba95b189/",
+    },
     details: [
       {
         title: "GoDaddy",
@@ -93,15 +121,26 @@ export const sections = [
     label: "Selected work",
     preview: "Architecture · Impact",
     number: "03",
-    x: 51,
-    y: 40,
+    pos: [31, 4],
     eyebrow: "ENGINEERING IN PRACTICE",
     title: "Complex systems.\nConcrete outcomes.",
-    metric: "850K",
-    unit: "customer records recovered",
     description:
       "A selection of platform, reliability, and product work. Designed across service boundaries and carried through to production.",
-    cta: "Explore selected work",
+    brief: {
+      org: "Case studies",
+      role: "Platform · Reliability · Product delivery",
+      heading: "Highlights",
+      bullets: [
+        "Reusable payment platform decoupled from product IDs",
+        "Diagnosed a downstream gap and drove recovery of ~850K records",
+        "Cache-invalidation fixes lifted availability to ~99.97%",
+      ],
+      stats: [
+        ["850K", "Records recovered"],
+        ["99.97%", "Availability"],
+      ],
+    },
+    link: { label: "Read the case studies", href: "?view=plain#work" },
     details: [
       {
         title: "A reusable payment platform",
@@ -149,15 +188,25 @@ export const sections = [
     label: "Side projects",
     preview: "Experiments · Frontend",
     number: "04",
-    x: 61,
-    y: 70,
+    pos: [5, 18],
     eyebrow: "OUTSIDE THE TOUCHLINE",
     title: "Stay curious.\nKeep shipping.",
-    metric: "React",
-    unit: "experiments in product craft",
     description:
       "Independent projects exploring live data, search, state management, and clear interfaces.",
-    cta: "Browse the projects",
+    brief: {
+      org: "Independent builds",
+      role: "React · Context API · Public APIs",
+      heading: "Projects",
+      bullets: [
+        "CryptoTracker — INR and USD prices with 30-day trends",
+        "The Cocktail DB — searchable catalogue with detail views",
+      ],
+      stats: [
+        ["2", "Shipped experiments"],
+        ["React", "Primary stack"],
+      ],
+    },
+    link: { label: "Browse code on GitHub", href: "https://github.com/harshitsinha23" },
     details: [
       {
         title: "CryptoTracker",
@@ -176,15 +225,26 @@ export const sections = [
     label: "Thinking",
     preview: "Systems · Principles",
     number: "05",
-    x: 70,
-    y: 33,
+    pos: [22, -20],
     eyebrow: "HOW I APPROACH THE WORK",
     title: "Make the decision.\nOwn what follows.",
-    metric: "End to end",
-    unit: "from technical approach to operations",
     description:
       "My engineering practice connects system design, product constraints, and the realities of operating services.",
-    cta: "Read my approach",
+    brief: {
+      org: "Engineering principles",
+      role: "Architecture · Reliability · Leadership",
+      heading: "Principles",
+      bullets: [
+        "Design for reuse — clear API contracts, no product coupling",
+        "Close the operational loop — observability and recovery paths",
+        "Multiply delivery through others — mentor, align, carry through",
+      ],
+      stats: [
+        ["3", "Core principles"],
+        ["E2E", "Design to operations"],
+      ],
+    },
+    link: { label: "Read my approach", href: "?view=plain#writing" },
     details: [
       {
         title: "Design for reuse",
@@ -208,15 +268,22 @@ export const sections = [
     label: "Contact",
     preview: "Start a conversation",
     number: "06",
-    x: 82,
-    y: 57,
+    pos: [-38, 3],
     eyebrow: "THE NEXT CHAPTER",
     title: "Good problems.\nGreat teammates.",
-    metric: "Let’s talk",
-    unit: "architecture, systems, and what comes next",
     description:
       "Based in Gurugram, India. Interested in challenging engineering problems and teams that value thoughtful execution.",
-    cta: "Start a conversation",
+    brief: {
+      org: "Gurugram, India",
+      role: "Open to engineering conversations",
+      heading: "Reach me",
+      links: [
+        ["Email", "kumarharshit2309@gmail.com", "mailto:kumarharshit2309@gmail.com"],
+        ["LinkedIn", "harshit-kumar", "https://www.linkedin.com/in/harshit-kumar-1ba95b189/"],
+        ["GitHub", "harshitsinha23", "https://github.com/harshitsinha23"],
+      ],
+    },
+    link: { label: "Send an email", href: "mailto:kumarharshit2309@gmail.com" },
     details: [
       {
         title: "Get in touch",
