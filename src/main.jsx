@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { sections } from "./content";
+import { profile, sections } from "./content";
 import "./style.css";
 
 const readHash = () =>
@@ -20,6 +20,7 @@ const supportsWebGL = () => {
     return false;
   }
 };
+let kickoffPlayed = false;
 const fontsReady = () =>
   Promise.race([
     document.fonts?.ready ?? Promise.resolve(),
@@ -41,14 +42,23 @@ function LinkOutIcon() {
   );
 }
 
-function Details({ section }) {
+function Details({ section, onCert }) {
   return (
     <>
       {section.details.map((d, i) => (
         <article className="detail" key={d.title + i}>
           <p className="eyebrow">{d.meta}</p>
           <h3>{d.title}</h3>
-          <p>{d.body}</p>
+          {d.cert && (
+            <button
+              className="detail-cert"
+              onClick={() => onCert(d.cert)}
+              aria-label={`View the ${d.title} certificate full size`}
+            >
+              <CertImage cert={d.cert} />
+            </button>
+          )}
+          {d.body && <p>{d.body}</p>}
           {d.bullets && (
             <ul>
               {d.bullets.map((b) => (
@@ -59,15 +69,70 @@ function Details({ section }) {
           {d.links && (
             <div className="contact-links">
               {d.links.map(([label, url]) => (
-                <a key={url} href={url}>
+                <ExtLink key={url} href={url}>
                   {label} ↗
-                </a>
+                </ExtLink>
               ))}
             </div>
           )}
         </article>
       ))}
     </>
+  );
+}
+
+function CertImage({ cert, full = false, focus = false }) {
+  return (
+    <img
+      src={cert.image}
+      width={cert.width}
+      height={cert.height}
+      alt={`${cert.title} certificate (${cert.issuer}) awarded to Harshit Kumar`}
+      loading={full ? undefined : "lazy"}
+      style={focus ? { objectPosition: cert.focus } : undefined}
+    />
+  );
+}
+
+// Full-size certificate lightbox, with a link to the original on Google Drive.
+function CertViewer({ cert, onClose }) {
+  const ref = useRef();
+  useEffect(() => {
+    const d = ref.current;
+    if (cert && !d.open) d.showModal();
+    else if (!cert && d.open) d.close();
+  }, [cert]);
+  return (
+    <dialog
+      ref={ref}
+      className="cert-viewer"
+      aria-label={cert ? `${cert.title} certificate` : "Certificate"}
+      onClose={onClose}
+      onClick={(e) => {
+        if (e.target === ref.current) onClose();
+      }}
+    >
+      {cert && (
+        <>
+          <div className="dialog-top">
+            <span>
+              {cert.issuer.toUpperCase()} / {cert.award.toUpperCase()}
+            </span>
+            <button onClick={onClose}>Close ✕</button>
+          </div>
+          <CertImage cert={cert} full />
+          <div className="cert-foot">
+            <div>
+              <strong>{cert.title}</strong>
+              <span>{[cert.issuer, cert.date].filter(Boolean).join(" · ")}</span>
+            </div>
+            <ExtLink className="btn primary" href={cert.href}>
+              View original <LinkOutIcon />
+            </ExtLink>
+          </div>
+        </>
+      )}
+    </dialog>
   );
 }
 
@@ -93,8 +158,9 @@ function LinkOut({ section, onInternal, className = "linkout" }) {
   );
 }
 
-function Brief({ section }) {
+function Brief({ section, onCert }) {
   const b = section.brief;
+  const a = b.article;
   return (
     <>
       <h1 className="title">
@@ -111,7 +177,39 @@ function Brief({ section }) {
           <span>{b.role}</span>
         </div>
       </div>
-      <p className="summary">{b.summary ?? section.description}</p>
+      {section.awards ? (
+        <ul className="awards" aria-label="Certificates">
+          {section.awards.map((c) => (
+            <li key={c.id}>
+              <button onClick={() => onCert(c)} aria-label={`View the ${c.title} certificate`}>
+                <span className="award-thumb">
+                  <img src={c.thumb} width="432" height="240" alt="" />
+                  <ExpandIcon />
+                </span>
+                <span className="award-text">
+                  <strong>{c.short}</strong>
+                  <small>{c.award}</small>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : a ? (
+        <ExtLink className="feature" href={a.href}>
+          <small>
+            {a.publisher} · <time dateTime={a.iso}>{a.date}</time>
+          </small>
+          <strong>{a.title}</strong>
+          <p>{a.summary}</p>
+          <span className="chips">
+            {a.chips.map((c) => (
+              <span key={c}>{c}</span>
+            ))}
+          </span>
+        </ExtLink>
+      ) : (
+        <p className="summary">{b.summary ?? section.description}</p>
+      )}
       <h2 className="heading">{b.heading}</h2>
       {b.bullets && (
         <ul className="bullets">
@@ -158,13 +256,369 @@ function Brief({ section }) {
   );
 }
 
+const pad2 = (i) => String(i + 1).padStart(2, "0");
+// "Ownership — sole architect…" -> ["Ownership", "sole architect…"]
+const splitLead = (text) => {
+  const m = text.match(/^(.{2,40}?) — (.+)$/);
+  return m ? [m[1], m[2]] : [null, text];
+};
+
+function ExtLink({ href, className, children }) {
+  const ext = isExternal(href);
+  return (
+    <a
+      className={className}
+      href={href}
+      target={ext ? "_blank" : undefined}
+      rel={ext ? "noopener noreferrer" : undefined}
+    >
+      {children}
+    </a>
+  );
+}
+
+function Ticks({ items }) {
+  return (
+    <ul className="ticks">
+      {items.map((b) => {
+        const [lead, rest] = splitLead(b);
+        return (
+          <li key={b}>
+            {lead && <b>{lead} — </b>}
+            {rest}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+// Section-specific layouts for the plain view.
+function PlainBody({ section: s, onCert }) {
+  switch (s.id) {
+    case "career":
+      return (
+        <ol className="timeline">
+          {s.details.map((d) => (
+            <li key={d.meta}>
+              <div className="when">
+                <strong>{d.period}</strong>
+                {d.place && <span>{d.place}</span>}
+              </div>
+              <div className="what">
+                <h3>
+                  {d.title} <span className="role-chip">{d.role}</span>
+                </h3>
+                <p className="when-inline">
+                  {[d.period, d.place].filter(Boolean).join(" · ")}
+                </p>
+                <p>{d.body}</p>
+                {d.bullets && <Ticks items={d.bullets} />}
+              </div>
+            </li>
+          ))}
+        </ol>
+      );
+    case "education": {
+      const d = s.details[0];
+      return (
+        <div className="edu">
+          <article className="card">
+            <p className="meta">{d.meta}</p>
+            <h3>{d.title}</h3>
+            <p>{d.body}</p>
+            <Ticks items={d.bullets} />
+          </article>
+          <div className="stat-stack">
+            {s.brief.stats.map(([v, l]) => (
+              <div className="stat" key={l}>
+                <strong>{v}</strong>
+                <span>{l}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    case "work":
+      return (
+        <div className="cases">
+          {s.details.map((d, i) => (
+            <article className="card case" key={d.title}>
+              <span className="case-num" aria-hidden="true">
+                {pad2(i)}
+              </span>
+              <div>
+                <p className="meta">{d.meta}</p>
+                <h3>{d.title}</h3>
+                <p>{d.body}</p>
+                {d.bullets && <Ticks items={d.bullets} />}
+              </div>
+            </article>
+          ))}
+        </div>
+      );
+    case "achievements":
+      return (
+        <div className="trophies">
+          <h3 className="sub-head">Certificates</h3>
+          <div className="certs">
+            {s.awards.map((c) => (
+              <figure className="card cert" key={c.id}>
+                <button
+                  className="cert-frame"
+                  onClick={() => onCert(c)}
+                  aria-label={`View the ${c.title} certificate full size`}
+                >
+                  <CertImage cert={c} focus />
+                  <span className="cert-zoom">
+                    <ExpandIcon /> View full size
+                  </span>
+                </button>
+                <figcaption>
+                  <p className="meta">
+                    {[c.issuer, c.award, c.date].filter(Boolean).join(" · ")}
+                  </p>
+                  <h4>{c.title}</h4>
+                  <p>{c.body}</p>
+                  <ExtLink className="cert-link" href={c.href}>
+                    View original certificate <LinkOutIcon />
+                  </ExtLink>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          <h3 className="sub-head">Contest rankings</h3>
+          <ol className="ranks">
+            {s.rankings.map(([value, event, note]) => (
+              <li key={event + value}>
+                <strong>{value}</strong>
+                <span>
+                  {event}
+                  {note && <small>{note}</small>}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <h3 className="sub-head">Coding profiles</h3>
+          <div className="reach-cards profiles">
+            {s.profiles.map((p) => (
+              <ExtLink key={p.href} href={p.href}>
+                <small>{p.site}</small>
+                <span>{p.badge ?? "Profile"}</span>
+                <em>@{p.handle}</em>
+                <LinkOutIcon />
+              </ExtLink>
+            ))}
+          </div>
+        </div>
+      );
+    case "blog": {
+      const a = s.article;
+      return (
+        <article className="card post">
+          <p className="meta">
+            {a.publisher} · <time dateTime={a.iso}>{a.date}</time> · {a.topic}
+          </p>
+          <h3>
+            <ExtLink href={a.href}>{a.title}</ExtLink>
+          </h3>
+          <p>{a.summary}</p>
+          <p className="post-label">In this article</p>
+          <ul className="ticks post-covers">
+            {a.covers.map((c) => (
+              <li key={c}>{c}</li>
+            ))}
+          </ul>
+          <ul className="tags">
+            {a.tags.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
+          <div className="post-actions">
+            <ExtLink className="btn primary" href={a.href}>
+              Read on Medium <LinkOutIcon />
+            </ExtLink>
+            <ExtLink className="btn" href={a.profile}>
+              More on Medium <LinkOutIcon />
+            </ExtLink>
+          </div>
+        </article>
+      );
+    }
+    case "writing":
+      return (
+        <ol className="grid-3">
+          {s.details.map((d, i) => (
+            <li className="card principle" key={d.title}>
+              <span className="principle-num" aria-hidden="true">
+                {pad2(i)}
+              </span>
+              <p className="meta">{d.meta}</p>
+              <h3>{d.title}</h3>
+              <p>{d.body}</p>
+            </li>
+          ))}
+        </ol>
+      );
+    case "contact":
+      return (
+        <div className="reach-cards">
+          {s.brief.links.map(([label, text, href]) => (
+            <ExtLink key={href} href={href}>
+              <small>{label}</small>
+              <span>{text}</span>
+              <LinkOutIcon />
+            </ExtLink>
+          ))}
+        </div>
+      );
+    default:
+      return <Details section={s} onCert={onCert} />;
+  }
+}
+
+function PlainView() {
+  const [active, setActive] = useState(sections[0].id);
+  const [cert, setCert] = useState(null);
+  const toc = useRef();
+
+  // Highlight the section crossing the upper third of the viewport.
+  useEffect(() => {
+    const els = sections.map((s) => document.getElementById(s.id));
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const line = innerHeight * 0.3;
+      let id = sections[0].id;
+      for (const el of els) if (el && el.getBoundingClientRect().top <= line) id = el.id;
+      const doc = document.documentElement;
+      if (innerHeight + scrollY >= doc.scrollHeight - 4) id = sections.at(-1).id;
+      setActive(id);
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll);
+    return () => {
+      removeEventListener("scroll", onScroll);
+      removeEventListener("resize", onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  // On mobile the index is a horizontal strip: keep the active chip in view.
+  useEffect(() => {
+    const ol = toc.current;
+    const a = ol?.querySelector("[aria-current]");
+    if (!a || ol.scrollWidth <= ol.clientWidth) return;
+    ol.scrollTo({ left: a.offsetLeft - ol.clientWidth / 2 + a.offsetWidth / 2, behavior: "smooth" });
+  }, [active]);
+
+  return (
+    <div className="plain-wrap">
+      <aside className="plain-side">
+        <nav aria-label="Résumé sections">
+          <p className="toc-title">On this page</p>
+          <ol className="toc" ref={toc}>
+            {sections.map((s) => (
+              <li key={s.id}>
+                <a href={`#${s.id}`} aria-current={active === s.id ? "location" : undefined}>
+                  <small>{s.number}</small>
+                  {s.label}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+        <div className="side-actions">
+          <button className="btn" onClick={() => window.print()}>
+            Print / save PDF
+          </button>
+          <a className="btn" href={`mailto:${profile.email}`}>
+            Email me <LinkOutIcon />
+          </a>
+        </div>
+      </aside>
+      <main className="plain" id="content">
+        <section className="hero" aria-labelledby="plain-title">
+          <p className="eyebrow">HARSHIT KUMAR / ENGINEERING PORTFOLIO</p>
+          <h1 id="plain-title">
+            {profile.tagline[0]}
+            <br />
+            <em>{profile.tagline[1]}</em>
+          </h1>
+          <p className="intro-copy">{profile.summary}</p>
+          <dl className="facts">
+            {profile.facts.map(([k, v]) => (
+              <div key={k}>
+                <dt>{k}</dt>
+                <dd>{v}</dd>
+              </div>
+            ))}
+          </dl>
+          <div className="hero-stats">
+            {profile.stats.map(([v, l]) => (
+              <div className="stat" key={l}>
+                <strong>{v}</strong>
+                <span>{l}</span>
+              </div>
+            ))}
+          </div>
+          <ul className="skill-list" aria-label="Focus areas">
+            {profile.skills.map((s) => (
+              <li key={s}>{s}</li>
+            ))}
+          </ul>
+          <div className="hero-actions">
+            <a className="btn primary" href={`mailto:${profile.email}`}>
+              Email me <LinkOutIcon />
+            </a>
+            <ExtLink className="btn" href={profile.linkedin}>
+              LinkedIn <LinkOutIcon />
+            </ExtLink>
+            <ExtLink className="btn" href={profile.github}>
+              GitHub <LinkOutIcon />
+            </ExtLink>
+            <button className="btn" onClick={() => window.print()}>
+              Print / save PDF
+            </button>
+          </div>
+        </section>
+        {sections.map((s) => (
+          <section className="plain-section" id={s.id} key={s.id} aria-labelledby={`${s.id}-h`}>
+            <header className="sec-head">
+              <p className="sec-kicker">
+                {s.number}
+                <span>{s.eyebrow}</span>
+              </p>
+              <h2 id={`${s.id}-h`}>{s.name ?? s.label}</h2>
+              <p className="sec-lead">{s.title.replace("\n", " ")}</p>
+              <p className="sec-desc">{s.description}</p>
+            </header>
+            <PlainBody section={s} onCert={setCert} />
+            {isExternal(s.link.href) && !s.article && (
+              <ExtLink className="sec-link" href={s.link.href}>
+                {s.link.label} <LinkOutIcon />
+              </ExtLink>
+            )}
+          </section>
+        ))}
+      </main>
+      <CertViewer cert={cert} onClose={() => setCert(null)} />
+    </div>
+  );
+}
+
 function App() {
   const [plain, setPlain] = useState(readPlain);
   const [selected, setSelected] = useState(readHash);
   const [displayed, setDisplayed] = useState(readHash);
   const [possession, setPossession] = useState(readHash);
   const [detail, setDetail] = useState(false);
-  const [sound, setSound] = useState(false);
+  const [cert, setCert] = useState(null);
   const [webgl, setWebgl] = useState(supportsWebGL);
   const [ready, setReady] = useState(false);
   const [reduced, setReduced] = useState(
@@ -176,31 +630,9 @@ function App() {
     labels = useRef([]),
     dialog = useRef(),
     lastFocus = useRef(),
-    audio = useRef(),
-    soundRef = useRef(sound),
     selectedRef = useRef(selected);
-  soundRef.current = sound;
   selectedRef.current = selected;
   const current = sections[displayed];
-
-  function kick() {
-    if (!soundRef.current) return;
-    try {
-      audio.current ??= new AudioContext();
-      const ctx = audio.current;
-      ctx.resume();
-      const o = ctx.createOscillator(),
-        g = ctx.createGain();
-      o.connect(g);
-      g.connect(ctx.destination);
-      o.frequency.setValueAtTime(130, ctx.currentTime);
-      o.frequency.exponentialRampToValueAtTime(45, ctx.currentTime + 0.1);
-      g.gain.setValueAtTime(0.07, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-      o.start();
-      o.stop(ctx.currentTime + 0.13);
-    } catch {}
-  }
 
   function navigate(index, push = true) {
     if (index < 0 || index >= sections.length) return;
@@ -247,9 +679,14 @@ function App() {
   // Lock the document to a single viewport while on the pitch.
   useLayoutEffect(() => {
     document.documentElement.classList.toggle("locked", !plain);
-    if (plain) {
-      const el = document.getElementById(sections[selectedRef.current].id);
-      if (location.hash && el) el.scrollIntoView();
+    if (plain && location.hash) {
+      const jump = () =>
+        document
+          .getElementById(sections[selectedRef.current].id)
+          ?.scrollIntoView({ behavior: "instant" });
+      jump();
+      // Web fonts can reflow the page after the first jump; re-align once they land.
+      fontsReady().then(jump);
     }
   }, [plain]);
 
@@ -272,12 +709,9 @@ function App() {
         portrait: r.width / r.height < 1.25,
       });
     };
-    let intro = false;
-    try {
-      intro =
-        !reduced && !location.hash && !sessionStorage.getItem("kickoffSeen");
-      if (intro) sessionStorage.setItem("kickoffSeen", "1");
-    } catch {}
+    // Kickoff plays on every page load (deep links and reloads included), not when returning from Plain view.
+    const intro = !reduced && !kickoffPlayed;
+    kickoffPlayed = true;
     Promise.all([import("./scene"), fontsReady()]).then(([{ createPitchScene }]) => {
       if (disposed) return;
       try {
@@ -288,7 +722,6 @@ function App() {
           reduced,
           intro,
           hooks: {
-            onKick: kick,
             onDisplay: (i) => setDisplayed(i),
             onPossession: (i) => setPossession(i),
           },
@@ -384,42 +817,11 @@ function App() {
   if (plain)
     return (
       <>
+        <a className="skip" href="#content">
+          Skip to content
+        </a>
         {header}
-        <main className="plain" id="content">
-          <p className="eyebrow">HARSHIT KUMAR / ENGINEERING PORTFOLIO</p>
-          <h1>
-            Architecture to production.
-            <br />
-            <em>Ownership all the way.</em>
-          </h1>
-          <p className="intro-copy">
-            Senior Software Engineer at GoDaddy, promoted to SDE-3 in April
-            2026. Over five years building and operating systems across
-            commerce, payments, recruiting, and consumer products.
-          </p>
-          <div className="skill-list">
-            {[
-              "Backend systems",
-              "Distributed systems",
-              "Full-stack development",
-              "System design",
-              "Technical leadership",
-            ].map((s) => (
-              <span key={s}>{s}</span>
-            ))}
-          </div>
-          <button className="text-link" onClick={() => window.print()}>
-            Print / save résumé ↗
-          </button>
-          {sections.map((s) => (
-            <section id={s.id} key={s.id}>
-              <h2>
-                <small>{s.number}</small> {s.label}
-              </h2>
-              <Details section={s} />
-            </section>
-          ))}
-        </main>
+        <PlainView />
         <footer>
           <span>Built with intent. Played with curiosity.</span>
           <a href="https://github.com/harshitsinha23/football-portfolio">
@@ -480,21 +882,6 @@ function App() {
               </button>
             ))}
           </nav>
-          <button
-            className="sound"
-            aria-pressed={sound}
-            onClick={() => setSound(!sound)}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 9v6h4l5 4V5L8 9z" />
-              {sound ? (
-                <path d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11" />
-              ) : (
-                <path d="M16 9l5 6M21 9l-5 6" />
-              )}
-            </svg>
-            <span>{sound ? "Sound on" : "Sound off"}</span>
-          </button>
         </div>
         <aside className="panel" id="content" aria-labelledby="panel-kicker">
           <div className="panel-top">
@@ -511,8 +898,8 @@ function App() {
               <span>Expand</span>
             </button>
           </div>
-          <div key={displayed} className="panel-body" aria-live="polite">
-            <Brief section={current} />
+          <div key={displayed} className="panel-body" data-id={current.id} aria-live="polite">
+            <Brief section={current} onCert={setCert} />
           </div>
           <div className="panel-foot">
             <LinkOut section={current} onInternal={openPlain} />
@@ -538,7 +925,7 @@ function App() {
           </button>
         </div>
         <h2>{current.title.replace("\n", " ")}</h2>
-        <Details section={current} />
+        <Details section={current} onCert={setCert} />
         <div className="dialog-foot">
           <LinkOut section={current} onInternal={openPlain} />
           <button className="back" onClick={() => setDetail(false)}>
@@ -546,6 +933,7 @@ function App() {
           </button>
         </div>
       </dialog>
+      <CertViewer cert={cert} onClose={() => setCert(null)} />
     </>
   );
 }

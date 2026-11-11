@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { buildStadium } from "./stadium";
 import { createPlayer, PLAYER_SCALE } from "./players";
-import { ballTexture, glowTexture } from "./textures";
+import { ballTexture, glowTexture, PITCH } from "./textures";
 
 const BALL_R = 0.62;
 const HEAD_Y = PLAYER_SCALE * 1.92;
@@ -15,7 +15,7 @@ const lerpAngle = (a, b, k) => {
 /**
  * Builds the stadium, players and ball, and runs the render loop.
  * formation: [{ x, z }] world positions (metres) for each section.
- * hooks: onKick(), onDisplay(index) at 70% of flight, onPossession(index).
+ * hooks: onDisplay(index) at 70% of flight, onPossession(index).
  */
 export function createPitchScene({ canvas, formation, initial, reduced, intro, hooks }) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
@@ -165,9 +165,11 @@ export function createPitchScene({ canvas, formation, initial, reduced, intro, h
       zs = homes.map((h) => h.z);
     const mx = stage.portrait ? 6 : 9,
       mz = stage.portrait ? 4 : 6;
+    // Always keep both goal mouths in shot (posts sit on the goal lines).
+    const goalX = PITCH.length / 2 + (stage.portrait ? 0.5 : 2);
     return [
-      Math.min(...xs) - mx,
-      Math.max(...xs) + mx,
+      Math.min(Math.min(...xs) - mx, -goalX),
+      Math.max(Math.max(...xs) + mx, goalX),
       Math.min(...zs) - mz,
       Math.max(...zs) + mz * 0.6,
       HEAD_Y * playerScale + 3,
@@ -282,7 +284,6 @@ export function createPitchScene({ canvas, formation, initial, reduced, intro, h
     p.control = mid.addScaledVector(side, d * 0.12);
     p.phase = "flight";
     p.t = 0;
-    hooks.onKick?.();
   }
 
   function flightPoint(p, u, out) {

@@ -20,9 +20,10 @@ npm run preview
 
 - **One screen, no scrolling.** The header, 3D pitch, section dock, and details panel always fit the first fold, from 360px phones to wide desktops (including landscape phones).
 - **Pass the ball.** Click a player or a section in the dock. The current holder turns and kicks, the ball arcs to the receiver with a gold trail, and the panel switches mid-flight. Scrolling does not trigger passes.
-- **Details panel.** Shows a content brief for each section: role, summary, highlights, stats, and links. Use **Expand** (top) for the full details or the **link-out** (bottom) for LinkedIn, GitHub, email, or the matching Plain view section.
+- **Details panel.** Shows a content brief for each section: role, summary, highlights, stats, and links. Use **Expand** (top) for the full details or the **link-out** (bottom) for LinkedIn, GitHub, Medium, email, or the matching Plain view section.
+- **Sections.** Education, Career, Selected work, Achievements, Thinking, Blog, and Contact. Achievements shows the HackWithInfy and Needle Mover certificates (click to view full size, with links to the originals), contest rankings, and Codeforces, HackerRank, and CodeChef profiles. Blog features the Medium article on web performance.
 - **Plain view** (`?view=plain`) is the full printable résumé with normal scrolling.
-- Deep links (`#career`, `#work`, …) and back/forward work. Sound is optional and off by default. Reduced-motion preferences are respected. A short kickoff intro plays on the first visit. Without WebGL the page falls back to the static stadium image.
+- Deep links (`#career`, `#work`, …) and back/forward work. Reduced-motion preferences are respected. A short kickoff intro plays each time the page opens. Without WebGL the page falls back to the static stadium image.
 
 ## Where things live
 
@@ -36,10 +37,11 @@ npm run preview
 | `src/scene/players.js` | Procedural player rigs and poses (idle, run, kick, receive) |
 | `src/scene/textures.js` | Canvas-generated textures (pitch, crowd, LED, numbers, nets) |
 | `public/art/stadium.webp` | Static fallback when WebGL is unavailable |
+| `public/awards/` | Optimised certificate images and thumbnails (originals are on Google Drive) |
 
 three.js is code-split, so the shell and panel render before the scene chunk loads.
 
-Content uses the supplied résumé and work notes, with the April 2026 promotion taking precedence over the older résumé. Thinking presents engineering principles based on this work. Project demos await verified URLs.
+Content uses the supplied résumé and work notes, with the April 2026 promotion taking precedence over the older résumé. Thinking presents engineering principles based on this work.
 
 [Implementation blueprint](docs/IMPLEMENTATION.md)
 

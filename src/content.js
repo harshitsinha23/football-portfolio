@@ -1,3 +1,98 @@
+// Header block for the plain (résumé) view.
+export const profile = {
+  name: "Harshit Kumar",
+  role: "Senior Software Engineer (SDE-3) · GoDaddy",
+  tagline: ["Architecture to production.", "Ownership all the way."],
+  summary:
+    "Senior Software Engineer at GoDaddy, promoted to SDE-3 in April 2026. Over five years building and operating systems across commerce, payments, recruiting, and consumer products.",
+  facts: [
+    ["Current role", "SDE-3 · Commerce & payments, GoDaddy"],
+    ["Experience", "5+ years · GoDaddy, Scaler, PayU"],
+    ["Location", "Gurugram, India"],
+    ["Education", "B.Tech CSE · JIIT, 2021"],
+  ],
+  stats: [
+    ["5+", "Years building production systems"],
+    ["3+", "Engineers mentored"],
+    ["850K", "Customer records recovered"],
+    ["99.97%", "Availability after cache fixes"],
+  ],
+  skills: [
+    "Backend systems",
+    "Distributed systems",
+    "Payments",
+    "Full-stack development",
+    "System design",
+    "Technical leadership",
+  ],
+  email: "kumarharshit2309@gmail.com",
+  linkedin: "https://www.linkedin.com/in/harshit-kumar-1ba95b189/",
+  github: "https://github.com/harshitsinha23",
+};
+
+// Certificates: optimised copies in /public/awards, originals on Google Drive.
+const AWARDS = {
+  hackwithinfy: {
+    id: "hackwithinfy",
+    title: "HackWithInfy 2020",
+    short: "HackWithInfy",
+    award: "Second runner-up",
+    issuer: "Infosys",
+    date: "Aug 2020",
+    body: "Certificate of achievement for remarkable team performance. Second runner-up among the top 25 teams, after reaching the top-100 grand finale from 170,000 participants.",
+    image: "/awards/hackwithinfy-2020.webp",
+    thumb: "/awards/hackwithinfy-2020-thumb.webp",
+    width: 800,
+    height: 566,
+    focus: "50% 22%",
+    href: "https://drive.google.com/file/d/1ryVJltV4qHerTIQWILPIxcaqEs0tJJ2Y/view",
+  },
+  needleMover: {
+    id: "needle-mover",
+    title: "Needle Mover Award",
+    short: "Needle Mover",
+    award: "Certificate of appreciation",
+    issuer: "Scaler",
+    body: "Awarded by Scaler’s co-founders for going above and beyond to #CreateImpact, and for collaborating with multiple stakeholders to keep delivery smooth and efficient.",
+    image: "/awards/needle-mover.webp",
+    thumb: "/awards/needle-mover-thumb.webp",
+    width: 800,
+    height: 1131,
+    focus: "50% 19%",
+    href: "https://drive.google.com/file/d/1zAoTe8_C1HnEVXz7u8_uhHCjRn9LejYB/view",
+  },
+};
+
+const PROFILES = [
+  { site: "Codeforces", handle: "harshit2309", badge: "Expert · 1730", href: "https://codeforces.com/profile/harshit2309" },
+  { site: "HackerRank", handle: "kumarharshit2309", badge: "5★", href: "https://www.hackerrank.com/profile/kumarharshit2309" },
+  { site: "CodeChef", handle: "harshit23", href: "https://www.codechef.com/users/harshit23" },
+];
+
+const ARTICLE = {
+  title: "Unlocking a Faster Website: Practical Tips for Boosting Speed and Performance",
+  href: "https://medium.com/@kumarharshit2309/unlocking-a-faster-website-practical-tips-for-boosting-speed-and-performance-579fb08699e3",
+  profile: "https://medium.com/@kumarharshit2309",
+  publisher: "Medium",
+  date: "1 Nov 2024",
+  iso: "2024-11-01",
+  topic: "Web performance",
+  summary:
+    "A practical, example-driven guide to making websites load faster and stay responsive — from how scripts load to what gets cached, compressed, or moved off the main thread.",
+  covers: [
+    "Script loading with async, defer and modules",
+    "Lazy loading: loading attribute, IntersectionObserver, content-visibility",
+    "Resource hints: preload, preconnect and prefetch",
+    "HTTP caching with Cache-Control",
+    "CDN caching",
+    "Critical CSS rendering",
+    "Web Workers for background tasks",
+    "Compression",
+  ],
+  chips: ["async & defer", "Lazy loading", "Caching", "Critical CSS"],
+  tags: ["JavaScript", "Web development", "Optimization", "Frontend"],
+};
+
 export const sections = [
   {
     id: "education",
@@ -72,6 +167,9 @@ export const sections = [
       {
         title: "GoDaddy",
         meta: "SDE-3 · April 2026–Present · Gurugram",
+        role: "SDE-3",
+        period: "Apr 2026 – Present",
+        place: "Gurugram",
         body: "Lead high-impact engineering initiatives across commerce and payment infrastructure. Own technical direction, API contracts, cross-team integration, production rollout, and ongoing operations.",
         bullets: [
           "Architected and built a product-agnostic payment platform around four APIs, removing websiteId and ventureId dependencies. First integration live on OLA Standalone.",
@@ -84,6 +182,9 @@ export const sections = [
       {
         title: "GoDaddy",
         meta: "SDE-2 · July 2024–March 2026",
+        role: "SDE-2",
+        period: "Jul 2024 – Mar 2026",
+        place: "Gurugram",
         body: "Delivered seller-facing capabilities while strengthening data integrity, reliability, and release quality across appointments and commerce.",
         bullets: [
           "Led coupon delivery across frontend and GoPay. Adoption reached 2,858 coupons from 1,594 sellers and 6,646 bookings using coupons.",
@@ -96,6 +197,9 @@ export const sections = [
       {
         title: "Scaler",
         meta: "SDE-2 · January–June 2024 | SDE · September 2021–December 2023 · Bengaluru",
+        role: "SDE → SDE-2",
+        period: "Sep 2021 – Jun 2024",
+        place: "Bengaluru",
         body: "Built recruiting products and improved the learning platform across React, Redux, JavaScript, and Ruby on Rails. Recipient of the Needle Mover Award.",
         bullets: [
           "Built CareersHub, attracting 7,000+ applications from 400+ learners in its first month and achieving 100% completion of user information updates.",
@@ -108,6 +212,8 @@ export const sections = [
       {
         title: "PayU",
         meta: "Software Development Engineer Intern · April–August 2021",
+        role: "SDE Intern",
+        period: "Apr – Aug 2021",
         body: "Built payment products using Go and JavaScript.",
         bullets: [
           "Developed an internet-free payment application around USSD payment technology (*99#).",
@@ -184,39 +290,75 @@ export const sections = [
     ],
   },
   {
-    id: "projects",
-    label: "Side projects",
-    preview: "Experiments · Frontend",
+    id: "achievements",
+    label: "Achievements",
+    name: "Programming achievements",
+    preview: "Awards · Rankings",
     number: "04",
     pos: [5, 18],
-    eyebrow: "OUTSIDE THE TOUCHLINE",
-    title: "Stay curious.\nKeep shipping.",
+    eyebrow: "THE TROPHY CABINET",
+    title: "Solve under pressure.\nEarn the podium.",
     description:
-      "Independent projects exploring live data, search, state management, and clear interfaces.",
+      "Hackathon podiums, contest rankings, and competitive-programming ratings, plus the Needle Mover Award from Scaler’s co-founders.",
+    awards: [AWARDS.hackwithinfy, AWARDS.needleMover],
+    rankings: [
+      ["2nd runner-up", "HackWithInfy 2020", "Among the top 25 teams · Infosys"],
+      ["Top 100", "HackWithInfy 2020 grand finale", "From 170,000 participants"],
+      ["2 / 900", "AlgoFuzz 19.1", "Online round"],
+      ["191 / 11,716", "CodeChef March Challenge 2019", "Division 2"],
+      ["2,426 / 160,000", "TCS CodeVita Season 9"],
+      ["1,500+", "Problems solved", "Across coding platforms"],
+    ],
+    profiles: PROFILES,
     brief: {
-      org: "Independent builds",
-      role: "React · Context API · Public APIs",
-      heading: "Projects",
+      org: "Programming achievements",
+      role: "Hackathons · Contests · Awards",
+      summary:
+        "Certificates from Infosys and Scaler, alongside contest rankings and coding-platform ratings.",
+      heading: "Rankings",
       bullets: [
-        "CryptoTracker — INR and USD prices with 30-day trends",
-        "The Cocktail DB — searchable catalogue with detail views",
+        "HackWithInfy 2020 · top 100 of 170,000",
+        "AlgoFuzz 19.1 · rank 2 of 900",
+        "CodeChef March 2019 · rank 191 of 11,716",
+        "TCS CodeVita S9 · rank 2,426 of 160,000",
       ],
       stats: [
-        ["2", "Shipped experiments"],
-        ["React", "Primary stack"],
+        ["1730", "Codeforces · Expert"],
+        ["5★", "HackerRank"],
       ],
     },
-    link: { label: "Browse code on GitHub", href: "https://github.com/harshitsinha23" },
+    link: { label: "View certificates & rankings", href: "?view=plain#achievements" },
     details: [
       {
-        title: "CryptoTracker",
-        meta: "React · Context API · HTML & CSS",
-        body: "A cryptocurrency tracker displaying prices in INR and USD and 30-day price trends. Used Context API for application state.",
+        title: AWARDS.hackwithinfy.title,
+        meta: "Infosys · Second runner-up · Aug 2020",
+        body: AWARDS.hackwithinfy.body,
+        cert: AWARDS.hackwithinfy,
+        links: [["View original certificate", AWARDS.hackwithinfy.href]],
       },
       {
-        title: "The Cocktail DB",
-        meta: "React · Search & detail experiences",
-        body: "A searchable cocktail catalogue with a dedicated detail view for each result. An exploration of API-driven interfaces and component composition.",
+        title: AWARDS.needleMover.title,
+        meta: "Scaler · Certificate of appreciation",
+        body: AWARDS.needleMover.body,
+        cert: AWARDS.needleMover,
+        links: [["View original certificate", AWARDS.needleMover.href]],
+      },
+      {
+        title: "Contest rankings",
+        meta: "Competitive programming",
+        bullets: [
+          "HackWithInfy 2020 — second runner-up among the top 25 teams, and a top-100 grand finalist from 170,000 participants.",
+          "AlgoFuzz 19.1 — ranked 2 of 900 in the online round.",
+          "CodeChef March Challenge 2019 — ranked 191 of 11,716 in Division 2.",
+          "TCS CodeVita Season 9 — ranked 2,426 of 160,000.",
+          "Practice — 1,500+ problems solved across platforms.",
+        ],
+      },
+      {
+        title: "Coding profiles",
+        meta: "Ratings & badges",
+        body: "Codeforces Expert (1730) and a 5★ HackerRank badge.",
+        links: PROFILES.map((p) => [p.badge ? `${p.site} · ${p.badge}` : p.site, p.href]),
       },
     ],
   },
@@ -264,10 +406,47 @@ export const sections = [
     ],
   },
   {
+    id: "blog",
+    label: "Blog",
+    preview: "Writing · Medium",
+    number: "06",
+    pos: [42, -14],
+    eyebrow: "FROM THE NOTEBOOK",
+    title: "Learn it deeply.\nWrite it down.",
+    description:
+      "Notes on building faster, more reliable software. Practical techniques written up from real frontend and platform work.",
+    article: ARTICLE,
+    brief: {
+      org: ARTICLE.publisher,
+      role: `Blog · ${ARTICLE.topic}`,
+      article: ARTICLE,
+      heading: "What it covers",
+      bullets: [
+        "Script loading: async, defer and modules",
+        "Lazy loading and resource hints",
+        "HTTP and CDN caching",
+        "Critical CSS, Web Workers and compression",
+      ],
+    },
+    link: { label: "Read the article on Medium", href: ARTICLE.href },
+    details: [
+      {
+        title: ARTICLE.title,
+        meta: `${ARTICLE.publisher} · ${ARTICLE.date} · ${ARTICLE.topic}`,
+        body: ARTICLE.summary,
+        bullets: ARTICLE.covers,
+        links: [
+          ["Read on Medium", ARTICLE.href],
+          ["More on Medium", ARTICLE.profile],
+        ],
+      },
+    ],
+  },
+  {
     id: "contact",
     label: "Contact",
     preview: "Start a conversation",
-    number: "06",
+    number: "07",
     pos: [-38, 3],
     eyebrow: "THE NEXT CHAPTER",
     title: "Good problems.\nGreat teammates.",

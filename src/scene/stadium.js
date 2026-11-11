@@ -110,35 +110,79 @@ function floodlight(glow, x, z, height, target) {
   return g;
 }
 
+// Goal sized to the stylised players (who are ~4x life size) so it reads at a glance.
+// Local frame: goal line at x=0, net extends towards -x; rotated per side.
+export const GOAL = { w: 18, h: 11, d: 5 };
 function goal(net, side) {
   const g = new THREE.Group();
-  const white = new THREE.MeshStandardMaterial({ color: "#f5f7fa", roughness: 0.4 });
-  const w = 7.32 * 1.25,
-    h = 2.44 * 1.35,
-    d = 2.6;
-  const post = (len, r = 0.14) => new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 8), white);
+  const white = new THREE.MeshStandardMaterial({ color: "#f7f9fc", roughness: 0.35, emissive: "#ffffff", emissiveIntensity: 0.12 });
+  const steel = new THREE.MeshStandardMaterial({ color: "#c9d1dc", roughness: 0.5, metalness: 0.3 });
+  const { w, h, d } = GOAL;
+  const r = 0.26;
+  const tube = (len, m = white, rad = r) => {
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad, len, 12), m);
+    t.castShadow = true;
+    return t;
+  };
+  // Posts and crossbar.
   for (const s of [-1, 1]) {
-    const p = post(h);
-    p.position.set(0, h / 2, (s * w) / 2);
-    p.castShadow = true;
+    const p = tube(h + r);
+    p.position.set(0, (h + r) / 2, (s * w) / 2);
     g.add(p);
   }
-  const bar = post(w);
+  const bar = tube(w + 2 * r);
   bar.rotation.x = Math.PI / 2;
   bar.position.y = h;
   g.add(bar);
-  const netMat = new THREE.MeshBasicMaterial({ map: net, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false });
-  const back = new THREE.Mesh(new THREE.PlaneGeometry(w, h), netMat);
-  back.rotation.y = Math.PI / 2;
-  back.position.set(-d, h / 2, 0);
-  g.add(back);
-  const top = new THREE.Mesh(new THREE.PlaneGeometry(d, w), netMat);
-  top.rotation.x = Math.PI / 2;
-  top.position.set(-d / 2, h, 0);
-  g.add(top);
+  // Rear frame: stanchions slanting back to a ground bar, like a real goal.
+  const topD = d * 0.45;
   for (const s of [-1, 1]) {
-    const sideNet = new THREE.Mesh(new THREE.PlaneGeometry(d, h), netMat);
-    sideNet.position.set(-d / 2, h / 2, (s * w) / 2);
+    const z = (s * w) / 2;
+    const top = tube(topD, steel, 0.1);
+    top.rotation.z = Math.PI / 2;
+    top.position.set(-topD / 2, h, z);
+    g.add(top);
+    const slant = Math.hypot(d - topD, h);
+    const back = tube(slant, steel, 0.1);
+    back.position.set(-(topD + d) / 2, h / 2, z);
+    back.rotation.z = Math.atan2(d - topD, h);
+    g.add(back);
+    const ground = tube(d, steel, 0.1);
+    ground.rotation.z = Math.PI / 2;
+    ground.position.set(-d / 2, 0.1, z);
+    g.add(ground);
+  }
+  const groundBack = tube(w, steel, 0.1);
+  groundBack.rotation.x = Math.PI / 2;
+  groundBack.position.set(-d, 0.1, 0);
+  g.add(groundBack);
+
+  // Net: roof, sloped back and two trapezoid sides.
+  const netMat = new THREE.MeshBasicMaterial({ map: net, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false });
+  const roof = new THREE.Mesh(new THREE.PlaneGeometry(topD, w), netMat);
+  roof.rotation.set(-Math.PI / 2, 0, Math.PI / 2);
+  roof.position.set(-topD / 2, h, 0);
+  g.add(roof);
+  const slope = Math.hypot(d - topD, h);
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(w, slope), netMat);
+  back.rotation.order = "YXZ";
+  back.rotation.y = Math.PI / 2;
+  back.rotation.x = -Math.atan2(d - topD, h);
+  back.position.set(-(topD + d) / 2, h / 2, 0);
+  g.add(back);
+  const sideShape = new THREE.Shape([
+    new THREE.Vector2(0, 0),
+    new THREE.Vector2(0, h),
+    new THREE.Vector2(-topD, h),
+    new THREE.Vector2(-d, 0),
+  ]);
+  const sideGeo = new THREE.ShapeGeometry(sideShape);
+  // Planar UVs in metres so the mesh density matches the other faces.
+  const uv = sideGeo.attributes.uv;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / (w / 3), uv.getY(i) / h);
+  for (const s of [-1, 1]) {
+    const sideNet = new THREE.Mesh(sideGeo, netMat);
+    sideNet.position.z = (s * w) / 2;
     g.add(sideNet);
   }
   g.position.x = side * HL;
@@ -215,7 +259,7 @@ export function buildStadium(renderer, scene) {
   for (const s of [-1, 1]) {
     const end = new THREE.Mesh(new THREE.BoxGeometry(PITCH.width + 4, 1.2, 0.3), [mat("#0b1430"), mat("#0b1430"), mat("#0b1430"), mat("#0b1430"), ledMat, mat("#0b1430")]);
     end.rotation.y = s * Math.PI / 2;
-    end.position.set(-s * (HL + APRON - 1.2), 0.6, 0);
+    end.position.set(-s * (HL + APRON - 0.4), 0.6, 0);
     root.add(end);
   }
 
@@ -224,7 +268,8 @@ export function buildStadium(renderer, scene) {
   root.add(far);
   for (const s of [-1, 1]) {
     const end = stand(renderer, PITCH.width + 12, 14, 9, { crowdRows: 8, roof: false });
-    end.rotation.y = (s * Math.PI) / 2;
+    // Face the pitch: the stand's body (local -z) must extend outward, away from the goal.
+    end.rotation.y = (-s * Math.PI) / 2;
     end.position.set(s * (HL + APRON + 0.5), 0, 0);
     root.add(end);
   }
